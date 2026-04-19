@@ -23,12 +23,26 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   useOfflineSync()
 
+  async function fetchProfile(userId) {
+    // Retry up to 3 times — RLS sometimes needs a moment after login
+    for (let i = 0; i < 3; i++) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      if (data) { setProfile(data); return }
+      await new Promise(r => setTimeout(r, 500))
+    }
+    // If profile not found, set a default so the app doesn't hang
+    setProfile({ id: userId, role: 'employee', name: 'User' })
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user)
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
-        if (data) setProfile(data)
+        await fetchProfile(session.user.id)
       }
       setLoading(false)
     })
@@ -36,8 +50,7 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user)
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
-        if (data) setProfile(data)
+        await fetchProfile(session.user.id)
       } else {
         setUser(null)
         setProfile(null)
