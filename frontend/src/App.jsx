@@ -55,6 +55,7 @@ export default function App() {
         setUser(null)
         setProfile(null)
       }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
