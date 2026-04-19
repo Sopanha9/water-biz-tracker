@@ -1,5 +1,5 @@
 {
-  "name": "water-biz-tracker-backend",
+  "name": "water_biz_tracker_backend",
   "version": "1.0.0",
   "description": "Backend for Water Biz Tracker — Telegram alerts and cron jobs",
   "main": "index.js",
